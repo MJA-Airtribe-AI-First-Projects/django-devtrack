@@ -1,0 +1,52 @@
+[
+    {
+        "id": "78d1dcbd-4206-4d56-bc55-b9271d5630e0",
+        "title": "Update footer link",
+        "description": "The footer link points to the old help page.",
+        "status": "open",
+        "priority": "low",
+        "reporter_id": "23bc33c0-f391-4f60-8742-9143f728cadb",
+        "created_at": "2026-10-05 14:29:06.964888",
+        "message": "[LOW] Update footer link - low priority, handle when free"
+    },
+    {
+        "id": "8a22e841-1da6-46f0-975a-f1ddf975de2e",
+        "title": "Search results are inconsistent",
+        "description": "Some matching records are missing from search results.",
+        "status": "open",
+        "priority": "medium",
+        "reporter_id": "23bc33c0-f391-4f60-8742-9143f728cadb",
+        "created_at": "2026-10-05 14:30:13.300508",
+        "message": "Search results are inconsistent - [medium]"
+    },
+    {
+        "id": "032d3098-0dce-41de-96c7-c92ae50aafb6",
+        "title": "Login fails for some users",
+        "description": "Some users receive an error when submitting valid login details.",
+        "status": "open",
+        "priority": "high",
+        "reporter_id": "23bc33c0-f391-4f60-8742-9143f728cadb",
+        "created_at": "2026-10-05 14:30:29.408523",
+        "message": "Login fails for some users - [high]"
+    },
+    {
+        "id": "16791ed0-83b3-4aed-a9da-40536248de86",
+        "title": "Service unavailable",
+        "description": "The application is unavailable to all users.",
+        "status": "open",
+        "priority": "critical",
+        "reporter_id": "23bc33c0-f391-4f60-8742-9143f728cadb",
+        "created_at": "2026-10-05 14:30:44.443425",
+        "message": "[URGENT] Service unavailable - need immediate review"
+    },
+    {
+        "id": "fc3f3a94-7396-4e4c-9f1b-6cf4f8d977db",
+        "title": "Service unavailable",
+        "description": "The application is unavailable to all users.",
+        "status": "open",
+        "priority": "critical",
+        "reporter_id": "23bc33c0-f391-4f60-8742-9143f728cadb",
+        "created_at": "2026-10-05 15:49:07.020801",
+        "message": "[URGENT] Service unavailable - need immediate review"
+    }
+]
