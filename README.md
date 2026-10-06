@@ -444,7 +444,11 @@ BaseEntity
 
 `Issue` provides the common issue behavior.
 
+### Polymorphism
 `CriticalIssue` and `LowPriorityIssue` override the `describe()` method to provide priority-specific behavior.
+
+### Encapsulation
+`Issue` stores its message in the internal `_message` attribute. Callers read it through the read-only `message` property and update it with `set_message()`, keeping changes behind the class interface. `Issue.to_dict()` maps `_message` to `message` so the internal name does not appear in JSON.
 
 This demonstrates:
 
@@ -452,6 +456,7 @@ This demonstrates:
 * **Inheritance**
 * **Method overriding**
 * **Polymorphism**
+* **Encapsulation**
 
 ---
 
