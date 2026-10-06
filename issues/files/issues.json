@@ -38,15 +38,5 @@
         "reporter_id": "23bc33c0-f391-4f60-8742-9143f728cadb",
         "created_at": "2026-10-05 14:30:44.443425",
         "message": "[URGENT] Service unavailable - need immediate review"
-    },
-    {
-        "id": "fc3f3a94-7396-4e4c-9f1b-6cf4f8d977db",
-        "title": "Service unavailable",
-        "description": "The application is unavailable to all users.",
-        "status": "open",
-        "priority": "critical",
-        "reporter_id": "23bc33c0-f391-4f60-8742-9143f728cadb",
-        "created_at": "2026-10-05 15:49:07.020801",
-        "message": "[URGENT] Service unavailable - need immediate review"
     }
 ]
