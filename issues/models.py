@@ -44,8 +44,6 @@ class Issue(BaseEntity):
 
     STATUS = ["open", "in_progress", "resolved", "closed"]  # Allowed issue states.
     PRIORITY = ["low", "medium", "high", "critical"]  # Allowed issue priorities.
-    message: str = ""
-
     def __init__(self, title, description, status, priority, reporter_id,
                  created_at=None):
         """Initialize an issue, optionally with its creation timestamp."""
@@ -56,9 +54,23 @@ class Issue(BaseEntity):
         self.priority = priority  # Urgency level; must be one of PRIORITY.
         self.reporter_id = reporter_id  # ID of the reporter who filed the issue.
         self.created_at = created_at  # Timestamp when the issue was created.
+        self._message = ""  # Stored privately; exposed as `message` in the public API and JSON.
 
-    def set_message(self, message):
-        self.message = message
+    def set_message(self, message: str) -> None:
+        """Set the issue's message."""
+        self._message = message
+
+    @property
+    def message(self) -> str:
+        """Return the issue's message."""
+        return self._message
+
+    @override
+    def to_dict(self):
+        """Return issue fields using the public message name."""
+        data = super().to_dict()
+        data["message"] = data.pop("_message")
+        return data
 
     @override
     def validate(self):
