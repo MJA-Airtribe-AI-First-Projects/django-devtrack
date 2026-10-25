@@ -4,6 +4,9 @@ import uuid
 from abc import ABC, abstractmethod
 from typing import override
 
+from django.core.exceptions import ValidationError
+from django.core.validators import validate_email
+
 
 class BaseEntity(ABC):
     """Common interface and serialization helpers for model entities."""
@@ -32,10 +35,14 @@ class Reporter(BaseEntity):
 
     @override
     def validate(self):
-        """Ensure the reporter has a name and a valid-looking email."""
-        if not self.name:
+        """Ensure the reporter has a name, team, and valid email address."""
+        if not isinstance(self.name, str) or not self.name.strip():
             raise ValueError('Name cannot be None or Empty')
-        if '@' not in self.email:
+        if not isinstance(self.team, str) or not self.team.strip():
+            raise ValueError('Team cannot be None or Empty')
+        try:
+            validate_email(self.email)
+        except (ValidationError, TypeError):
             raise ValueError('Invalid Email')
 
 
@@ -74,9 +81,12 @@ class Issue(BaseEntity):
 
     @override
     def validate(self):
-        """Ensure the issue has a title and allowed status and priority."""
-        if not self.title:
+        """Ensure the issue has a title and description, valid status, and priority."""
+        if not isinstance(self.title, str) or not self.title.strip():
             raise ValueError('Title cannot be None or Empty')
+
+        if not isinstance(self.description, str) or not self.description.strip():
+            raise ValueError('Description cannot be None or Empty')
 
         if self.status not in self.STATUS:
             raise ValueError('Invalid Status')

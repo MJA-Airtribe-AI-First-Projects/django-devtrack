@@ -13,6 +13,10 @@ FILES_REPORTER_JSON = 'issues/files/reporters.json'
 FILES_ISSUES_JSON = 'issues/files/issues.json'
 
 
+class StorageDataError(Exception):
+    """Raised when a JSON storage file contains invalid data."""
+
+
 ## Reporter APIs ##
 class ReporterView(APIView):
     """Handle API requests for listing, retrieving, and creating reporters."""
@@ -23,8 +27,10 @@ class ReporterView(APIView):
         try:
             with open(FILES_REPORTER_JSON, 'r') as f:
                 reporters = json.load(f)
-        except (FileNotFoundError, JSONDecodeError):
+        except FileNotFoundError:
             reporters = []
+        except JSONDecodeError as e:
+            raise StorageDataError('Reporter storage contains malformed JSON') from e
 
         return reporters
 
@@ -39,7 +45,10 @@ class ReporterView(APIView):
     @override
     def get(self, request, id=None) -> Response:
         """Return all reporters or the reporter matching the optional ID."""
-        reporters = self.get_all_reporters()
+        try:
+            reporters = self.get_all_reporters()
+        except StorageDataError as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         if id is None:
             return Response({"reporters": reporters}, status=status.HTTP_200_OK)
@@ -59,9 +68,13 @@ class ReporterView(APIView):
             reporter.validate()  # Reject incomplete or invalid reporter details.
 
             reporters = self.get_all_reporters()
-            if self.get_reporter_by_id(reporters, reporter.id) is not None:
+            if any(
+                    existing.get('email', '').strip().casefold() == reporter.email.strip().casefold()
+                    for existing in reporters
+                    if isinstance(existing.get('email'), str)
+            ):
                 return Response(
-                    {"error": f"Reporter with id {reporter.id} already exists"},
+                    {"error": "A reporter with this email already exists"},
                     status=status.HTTP_409_CONFLICT,
                 )
 
@@ -75,7 +88,9 @@ class ReporterView(APIView):
             return Response({"reporter": reporter_dict}, status=status.HTTP_201_CREATED)
         except ValueError as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-        except (FileNotFoundError, JSONDecodeError) as e:
+        except StorageDataError as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        except FileNotFoundError as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
         except KeyError as e:
             return Response({"error": f"Missing field: {e.args[0]}"}, status=status.HTTP_400_BAD_REQUEST)
@@ -93,8 +108,10 @@ class IssueView(APIView):
         try:
             with open(FILES_ISSUES_JSON, 'r') as f:
                 issues = json.load(f)
-        except (FileNotFoundError, JSONDecodeError):
+        except FileNotFoundError:
             issues = []
+        except JSONDecodeError as e:
+            raise StorageDataError('Issue storage contains malformed JSON') from e
 
         return issues
 
@@ -116,22 +133,25 @@ class IssueView(APIView):
     def get(self, request, id=None) -> Response:
         """Return an issue by ID, filter issues, or list all issues."""
         # An ID in the URL requests a single issue.
-        if id is not None:
+        try:
+            if id is not None:
+                issues = self.__get_all_issues()
+                issue = self.__get_issue_by_id(issues, id)
+                if issue is None:
+                    return Response({"error": "Issue not found"}, status=status.HTTP_404_NOT_FOUND)
+                return Response({"issue": issue}, status=status.HTTP_200_OK)
+
+            # Filter by priority when a search query parameter is present.
+            filter_value = request.query_params.get("search")
+            if filter_value is not None:
+                filtered_issues = self.__filter_issues("priority", filter_value)
+                return Response({"issues": filtered_issues}, status=status.HTTP_200_OK)
+
+            # With no ID or filter, return the full issue list.
             issues = self.__get_all_issues()
-            issue = self.__get_issue_by_id(issues, id)
-            if issue is None:
-                return Response({"error": "Issue not found"}, status=status.HTTP_404_NOT_FOUND)
-            return Response({"issue": issue}, status=status.HTTP_200_OK)
-
-        # Filter by priority when a search query parameter is present.
-        filter_value = request.query_params.get("search")
-        if filter_value is not None:
-            filtered_issues = self.__filter_issues("priority", filter_value)
-            return Response({"issues": filtered_issues}, status=status.HTTP_200_OK)
-
-        # With no ID or filter, return the full issue list.
-        issues = self.__get_all_issues()
-        return Response({"issues": issues}, status=status.HTTP_200_OK)
+            return Response({"issues": issues}, status=status.HTTP_200_OK)
+        except StorageDataError as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     @override
     def post(self, request) -> Response:
@@ -161,7 +181,9 @@ class IssueView(APIView):
             return Response({"issue": issue_dict}, status=status.HTTP_201_CREATED)
         except ValueError as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-        except (FileNotFoundError, JSONDecodeError) as e:
+        except StorageDataError as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        except FileNotFoundError as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
         except KeyError as e:
             return Response({"error": f"Missing field: {e.args[0]}"}, status=status.HTTP_400_BAD_REQUEST)
